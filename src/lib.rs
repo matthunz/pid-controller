@@ -30,6 +30,15 @@ impl PID {
         }
     }
 
+    /// Toggle the PID to either a direct acting process (`+output` leads to `+input`)
+    /// or a reverse acting process(`+output` leads to `-input`.)
+    pub fn reverse(&mut self) {
+        self.kp = -self.kp;
+        self.ki = -self.ki;
+        self.kd = -self.kd;
+    }
+
+    /// Tune `kp`, `ki`, and `kd` to adjust the PID's performance after initialization.
     pub fn tune(&mut self, kp: f32, ki: f32, kd: f32, p_on_e: bool, sample_rate: Duration) {
         if kp < 0. || ki < 0. || kd < 0. {
             return;
