@@ -20,12 +20,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .label("Input")
         .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
 
-    let mut pid = PID::new(0.1, 0.05, 0., false, 100.);
+    let mut pid = PID::new(0.1, 0.05, 0.);
     chart
         .draw_series(LineSeries::new(
             (-50..=50)
                 .map(|x| x as f32 / 50.0)
-                .map(|x| (x, pid.output(x))),
+                .map(|x| (x, pid.output(x, 100.))),
             &RED,
         ))?
         .label("Output")
