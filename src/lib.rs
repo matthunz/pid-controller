@@ -1,6 +1,6 @@
 #[derive(Clone, Copy, Debug, Default)]
 pub struct P {
-    kp: f32,
+    pub kp: f32,
 }
 
 impl P {
@@ -21,8 +21,8 @@ impl P {
 }
 
 pub struct PD {
-    p: P,
-    kd: f32,
+    pub p: P,
+    pub kd: f32,
 }
 
 impl PD {
@@ -44,9 +44,9 @@ pub fn error(target: f32, actual: f32) -> f32 {
 }
 
 pub struct PID {
-    pd: PD,
-    ki: f32,
-    integrated_error: f32,
+    pub pd: PD,
+    pub ki: f32,
+    pub integrated_error: f32,
 }
 
 impl PID {
