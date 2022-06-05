@@ -34,6 +34,11 @@ impl PD {
         }
     }
 
+    pub fn control(&self, target: f32, target_dot: f32, actual: f32, actual_dot: f32) -> f32 {
+        let p = self.p.control(target, actual);
+        self.control_with_p(p, target_dot, actual_dot)
+    }
+
     pub fn control_with_p(&self, p: f32, target_dot: f32, actual_dot: f32) -> f32 {
         self.kd * (target_dot - actual_dot) + p
     }
@@ -77,7 +82,6 @@ impl PID {
         p + i + d
     }
 }
-
 
 #[cfg(test)]
 mod tests {
