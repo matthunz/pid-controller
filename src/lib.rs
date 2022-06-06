@@ -1,34 +1,48 @@
+use std::ops::{Mul, Sub};
+
+use num_traits::One;
+
 #[derive(Clone, Copy, Debug)]
-pub struct P {
-    pub kp: f32,
+
+/// Proportional controller
+pub struct P<T> {
+    pub kp: T,
 }
 
-impl Default for P {
+impl<T: One> Default for P<T> {
     fn default() -> Self {
-        Self { kp: 1. }
+        Self { kp: T::one() }
     }
 }
 
-impl P {
+impl P<f32> {
     // Between 0.7 and 1
     pub fn new(damping_ratio: f32, time_constant: f32) -> Self {
         let kp = (1. / time_constant.powi(2)) * (1. + 2. * damping_ratio);
         Self { kp }
     }
+}
 
-    pub fn control(self, target: f32, actual: f32) -> f32 {
+impl<T> P<T> {
+    pub fn control<U: Sub<Output = U>>(self, target: U, actual: U) -> T::Output
+    where
+        T: Mul<U> + Clone,
+    {
         let error = error(target, actual);
         self.control_with_error(error)
     }
 
-    pub fn control_with_error(&self, error: f32) -> f32 {
-        error * self.kp
+    pub fn control_with_error<U>(&self, error: U) -> T::Output
+    where
+        T: Mul<U> + Clone,
+    {
+        self.kp.clone() * error
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct PD {
-    pub p: P,
+    pub p: P<f32>,
     pub kd: f32,
 }
 
@@ -51,7 +65,10 @@ impl PD {
     }
 }
 
-pub fn error(target: f32, actual: f32) -> f32 {
+pub fn error<T>(target: T, actual: T) -> T
+where
+    T: Sub<Output = T>,
+{
     target - actual
 }
 
