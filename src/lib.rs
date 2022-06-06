@@ -1,4 +1,4 @@
-use std::ops::{Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use num_traits::One;
 
@@ -15,18 +15,21 @@ impl<T: One> Default for P<T> {
     }
 }
 
-impl P<f32> {
+impl<T> P<T> {
     // Between 0.7 and 1
-    pub fn new(damping_ratio: f32, time_constant: f32) -> Self {
-        let kp = (1. / time_constant.powi(2)) * (1. + 2. * damping_ratio);
+    pub fn new(damping_ratio: T, time_constant: T) -> Self
+    where
+        T: One + Add<Output = T> + Div<Output = T> + Copy,
+    {
+        let kp = (T::one() / (time_constant * time_constant))
+            * (T::one() + (T::one() + T::one()) * damping_ratio);
         Self { kp }
     }
-}
 
-impl<T> P<T> {
-    pub fn control<U: Sub<Output = U>>(self, target: U, actual: U) -> T::Output
+    pub fn control<U>(self, target: U, actual: U) -> T::Output
     where
         T: Mul<U> + Clone,
+        U: Sub<Output = U>,
     {
         let error = error(target, actual);
         self.control_with_error(error)
@@ -41,27 +44,39 @@ impl<T> P<T> {
 }
 
 #[derive(Clone, Debug)]
-pub struct PD {
-    pub p: P<f32>,
-    pub kd: f32,
+pub struct PD<T> {
+    pub p: P<T>,
+    pub kd: T,
 }
 
-impl PD {
-    pub fn new(damping_ratio: f32, time_constant: f32) -> Self {
-        let kd = (1. / time_constant) * (1. + 2. * time_constant.powi(2));
+impl<T> PD<T> {
+    pub fn new(damping_ratio: T, time_constant: T) -> Self
+    where
+        T: One + Add<Output = T> + Div<Output = T> + Copy,
+    {
+        let kd = (T::one() / time_constant)
+            * (T::one() + (T::one() + T::one()) * time_constant * time_constant);
         Self {
             p: P::new(damping_ratio, time_constant),
             kd,
         }
     }
 
-    pub fn control(&self, target: f32, target_dot: f32, actual: f32, actual_dot: f32) -> f32 {
-        let p = self.p.control(target, actual);
+    pub fn control<U>(&self, target: U, target_dot: U, actual: U, actual_dot: U) -> U
+    where
+        T: Mul<U, Output = U> + Sub<Output = T> + Clone,
+        U: Add<Output = U> + Sub<Output = U>,
+    {
+        let p = self.p.clone().control(target, actual);
         self.control_with_p(p, target_dot, actual_dot)
     }
 
-    pub fn control_with_p(&self, p: f32, target_dot: f32, actual_dot: f32) -> f32 {
-        self.kd * (target_dot - actual_dot) + p
+    pub fn control_with_p<U>(&self, p: U, target_dot: U, actual_dot: U) -> U
+    where
+        T: Mul<U, Output = U> + Clone,
+        U: Add<Output = U> + Sub<Output = U>,
+    {
+        self.kd.clone() * (target_dot - actual_dot) + p
     }
 }
 
@@ -74,7 +89,7 @@ where
 
 #[derive(Clone, Debug)]
 pub struct PID {
-    pub pd: PD,
+    pub pd: PD<f32>,
     pub ki: f32,
     pub integrated_error: f32,
 }
