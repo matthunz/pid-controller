@@ -1,6 +1,12 @@
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct P {
     pub kp: f32,
+}
+
+impl Default for P {
+    fn default() -> Self {
+        Self { kp: 1. }
+    }
 }
 
 impl P {
@@ -20,6 +26,7 @@ impl P {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct PD {
     pub p: P,
     pub kd: f32,
@@ -48,6 +55,7 @@ pub fn error(target: f32, actual: f32) -> f32 {
     target - actual
 }
 
+#[derive(Clone, Debug)]
 pub struct PID {
     pub pd: PD,
     pub ki: f32,
